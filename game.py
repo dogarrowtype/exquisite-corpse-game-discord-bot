@@ -79,7 +79,7 @@ async def play_turn(ctx, sentence: str):
         await ctx.response.send_message(f"{ctx.user.mention} You're not in the game. Use `/join` to join.")
         return
     
-    if: user_id not in game_data[channel_id]["players"] and game_data[channel_id]["game_started"]:
+    if user_id not in game_data[channel_id]["players"] and game_data[channel_id]["game_started"]:
         await ctx.response.send_message(f"{ctx.user.mention} Sorry, the game has already been started, and you are not in it.")
         return
 

@@ -62,7 +62,7 @@ async def start_game(ctx, visible_words: typing.Optional[int] = 5):
 
     game_data[channel_id] = {"sentence": [], "turn_player": user_id, "game_started": True, "visible_words": visible_words}
 
-    player_ids_string = = ' '.join(f'<@{value}>' for value in game_data[channel_id]["players"].values())
+    player_ids_string = ' '.join(f'<@{value}>' for value in game_data[channel_id]["players"].values())
 
     await ctx.response.send_message(f"Starting a new game!\nPlayers in this game: {player_ids_string}.\nNumber of words that will be visible to the next player: {game_data[channel_id]['visible_words']}.\n<@{game_data[channel_id]['turn_player']}>'s turn. Use `/play` to continue the sentence.")
 

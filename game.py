@@ -62,7 +62,7 @@ async def start_game(ctx, visible_words: typing.Optional[int] = 5):
 
     game_data[channel_id] = {"sentence": [], "turn_player": user_id, "game_started": True, "visible_words": visible_words}
 
-    player_ids_string = ' '.join(f'<@{value}>' for value in game_data[channel_id]["players"].values())
+    player_ids_string = ' '.join(f'<@{value}>' for value in game_data[channel_id]["players"])
 
     await ctx.response.send_message(f"Starting a new game!\nPlayers in this game: {player_ids_string}.\nNumber of words that will be visible to the next player: {game_data[channel_id]['visible_words']}.\n<@{game_data[channel_id]['turn_player']}>'s turn. Use `/play` to continue the sentence.")
 
@@ -79,13 +79,13 @@ async def play_turn(ctx, sentence: str):
     if not game_data[channel_id]["game_started"]:
         await ctx.response.send_message(f"The game has not been started. The player who wants to go first should do `/start`.")
         return
-
-    if user_id not in game_data[channel_id]["players"]:
-        await ctx.response.send_message(f"{ctx.user.mention} You're not in the game. Use `/join` to join.")
-        return
     
     if user_id not in game_data[channel_id]["players"] and game_data[channel_id]["game_started"]:
         await ctx.response.send_message(f"{ctx.user.mention} Sorry, the game has already been started, and you are not in it.")
+        return
+
+    if user_id not in game_data[channel_id]["players"]:
+        await ctx.response.send_message(f"{ctx.user.mention} You're not in the game. Use `/join` to join.")
         return
 
     if user_id != game_data[channel_id]["turn_player"]:

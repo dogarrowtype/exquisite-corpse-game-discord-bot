@@ -62,7 +62,7 @@ async def start_game(ctx, visible_words: typing.Optional[int] = 5):
 
     player_ids_string = ' '.join(f'<@{player_id}>' for player_id in game_data[channel_id]["players"])
 
-    await ctx.response.send_message(f"Starting a new game!\nPlayers in this game: {player_ids_string}\n<@{game_data[channel_id]['turn_player']}> 's turn. Use `/play` to continue the sentence.")
+    await ctx.response.send_message(f"Starting a new game!\nPlayers in this game: {player_ids_string}\nNumber of words that will be visible to the next player: {game_data[channel_id]["visible_words"]}.\n<@{game_data[channel_id]['turn_player']}> 's turn. Use `/play` to continue the sentence.")
 
 @tree.command(name='play', description='Continue the sentence')
 async def play_turn(ctx, sentence: str):

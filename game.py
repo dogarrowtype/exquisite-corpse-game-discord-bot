@@ -60,8 +60,16 @@ async def start_game(ctx, visible_words: typing.Optional[int] = 5):
         await ctx.response.send_message("Not enough players! At least 1 player is required. Use `/join` to add more players.")
         return
 
-    game_data[channel_id] = {"sentence": [], "turn_player": user_id, "game_started": True, "visible_words": visible_words}
+    try:
+        game_data[channel_id]["visible_words"] = int(visible_words)
+    except Exception as e:
+        await ctx.response.send_message("Visible_words must be a number.")
+        return
 
+    game_data[channel_id]["sentence"] = []
+    game_data[channel_id]["turn_player"] = user_id
+    game_data[channel_id]["game_started"] = True
+    
     player_ids_string = ' '.join(f'<@{value}>' for value in game_data[channel_id]["players"])
 
     await ctx.response.send_message(f"Starting a new game!\nPlayers in this game: {player_ids_string}.\nNumber of words that will be visible to the next player: {game_data[channel_id]['visible_words']}.\n<@{game_data[channel_id]['turn_player']}>'s turn. Use `/play` to continue the sentence.")

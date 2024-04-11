@@ -35,6 +35,10 @@ async def join_game(ctx):
     if channel_id not in game_data:
         game_data[channel_id] = {"players": [], "sentence": [], "turn_player": None, "game_started": False, "visible_words": 5}
 
+    if user_id not in game_data[channel_id]["players"] and game_data[channel_id]["game_started"]:
+        await ctx.response.send_message(f"{ctx.user.mention} Sorry, the game has already been started, and you are not in it.")
+        return
+
     if user_id not in game_data[channel_id]["players"]:
         game_data[channel_id]["players"].append(user_id)
         await ctx.response.send_message(f'{ctx.user.mention} has joined the game!')

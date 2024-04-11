@@ -44,14 +44,11 @@ async def join_game(ctx):
 async def start_game(ctx, visible_words: typing.Optional[int] = 5):
     global game_data
     channel_id = ctx.channel.id
-    
-    #if channel_id not in game_data:
-    #    game_data[channel_id] = {"players": [], "sentence": [], "turn_player": None}
 
-    game_data[channel_id]["sentence"] = []
-    game_data[channel_id]["turn_player"] = None
-    game_data[channel_id]["game_started"] = True
-    game_data[channel_id]["visible_words"] = int(visible_words)
+    if game_data[channel_id]["game_started"]:
+        await ctx.response.send_message("Game is already started.")
+        return
+    game_data[channel_id] = {"sentence": [], "turn_player": None, "game_started": True, "visible_words": visible_words}
 
     # Check if there are enough players
     if len(game_data[channel_id]["players"]) < 1:
@@ -62,7 +59,7 @@ async def start_game(ctx, visible_words: typing.Optional[int] = 5):
 
     player_ids_string = ' '.join(f'<@{player_id}>' for player_id in game_data[channel_id]["players"])
 
-    await ctx.response.send_message(f"Starting a new game!\nPlayers in this game: {player_ids_string}\nNumber of words that will be visible to the next player: {game_data[channel_id]["visible_words"]}.\n<@{game_data[channel_id]["turn_player"]}> 's turn. Use `/play` to continue the sentence.")
+    await ctx.response.send_message(f"Starting a new game!\nPlayers in this game: {player_ids_string}\nNumber of words that will be visible to the next player: {game_data[channel_id]["visible_words"]}.\n<@{game_data[channel_id]["turn_player"]}>'s turn. Use `/play` to continue the sentence.")
 
 @tree.command(name='play', description='Continue the sentence')
 async def play_turn(ctx, sentence: str):
@@ -94,7 +91,7 @@ async def play_turn(ctx, sentence: str):
     game_data[channel_id]["sentence"].append({"player": ctx.user.id, "words": new_words})
 
     current_sentence = new_words.copy()
-    while len(current_sentence) > game_data[channel_id]["visible_words"]:
+    while len(current_sentence) > int(game_data[channel_id]["visible_words"]):
         current_sentence.pop(0)
     current_sentence = ' '.join(current_sentence)
 

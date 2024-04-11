@@ -1,6 +1,5 @@
 import os
 import discord
-import random
 from discord import app_commands
 from discord.ext import commands
 from dotenv import load_dotenv
@@ -33,7 +32,7 @@ async def join_game(ctx):
     user_id = ctx.user.id
     
     if channel_id not in game_data:
-        game_data[channel_id] = {"players": [], "sentence": [], "turn_player": None}
+        game_data[channel_id] = {"players": [], "sentence": [], "turn_player": None, "game_started": False, "visible_words": 5}
 
     if user_id not in game_data[channel_id]["players"]:
         game_data[channel_id]["players"].append(user_id)
@@ -42,21 +41,28 @@ async def join_game(ctx):
         await ctx.response.send_message(f'{ctx.user.mention} is already in the player list!')
 
 @tree.command(name='start', description='Start a new game')
-async def start_game(ctx):
+async def start_game(ctx, visible_words: typing.Optional[int] = 5):
     global game_data
     channel_id = ctx.channel.id
     
-    if channel_id not in game_data:
-        game_data[channel_id] = {"players": [], "sentence": [], "turn_player": None}
+    #if channel_id not in game_data:
+    #    game_data[channel_id] = {"players": [], "sentence": [], "turn_player": None}
+
+    game_data[channel_id]["sentence"] = []
+    game_data[channel_id]["turn_player"] = None
+    game_data[channel_id]["game_started"] = True
+    game_data[channel_id]["visible_words"] = int(visible_words)
 
     # Check if there are enough players
     if len(game_data[channel_id]["players"]) < 1:
-        await ctx.response.send_message("Not enough players! At least 1 player is required. Use /join to add more players.")
+        await ctx.response.send_message("Not enough players! At least 1 player is required. Use `/join` to add more players.")
         return
 
-    game_data[channel_id]["turn_player"] = random.choice(game_data[channel_id]["players"])
+    game_data[channel_id]["turn_player"] = ctx.user.id
 
-    await ctx.response.send_message(f"Starting a new game! <@{game_data[channel_id]['turn_player']}> 's turn. Use /play to continue the sentence.")
+    player_ids_string = ' '.join(f'<@{player_id}>' for player_id in game_data[channel_id]["players"])
+
+    await ctx.response.send_message(f"Starting a new game!\nPlayers in this game: {player_ids_string}\n<@{game_data[channel_id]['turn_player']}> 's turn. Use `/play` to continue the sentence.")
 
 @tree.command(name='play', description='Continue the sentence')
 async def play_turn(ctx, sentence: str):
@@ -65,22 +71,30 @@ async def play_turn(ctx, sentence: str):
     user_id = ctx.user.id
 
     if channel_id not in game_data:
-        await ctx.response.send_message("No game data found for this channel. Use /start to begin a new game.")
+        await ctx.response.send_message("No game data found for this channel. Use `/start` to begin a new game.")
         return
-
-    if user_id != game_data[channel_id]["turn_player"]:
-        await ctx.response.send_message(f"{ctx.user.mention} It's not your turn yet! Wait for your turn to play.")
+    
+    if not game_data[channel_id]["game_started"]:
+        await ctx.response.send_message(f"The game has not been started. The player who wants to go first should do `/start`.")
         return
 
     if user_id not in game_data[channel_id]["players"]:
-        await ctx.response.send_message(f"{ctx.user.mention} You're not in the game. Use /join to join.")
+        await ctx.response.send_message(f"{ctx.user.mention} You're not in the game. Use `/join` to join.")
+        return
+    
+    if: user_id not in game_data[channel_id]["players"] and game_data[channel_id]["game_started"]:
+        await ctx.response.send_message(f"{ctx.user.mention} Sorry, the game has already been started, and you are not in it.")
+        return
+
+    if user_id != game_data[channel_id]["turn_player"]:
+        await ctx.response.send_message(f"{ctx.user.mention} It's not your turn yet. Wait for your turn to play.")
         return
     
     new_words = sentence.split()
     game_data[channel_id]["sentence"].append({"player": ctx.user.id, "words": new_words})
 
     current_sentence = new_words.copy()
-    while len(current_sentence) > 5:
+    while len(current_sentence) > game_data[channel_id]["visible_words"]:
         current_sentence.pop(0)
     current_sentence = ' '.join(current_sentence)
 
@@ -98,7 +112,7 @@ async def reveal_story(ctx):
     channel_id = ctx.channel.id
 
     if channel_id not in game_data or not game_data[channel_id]["sentence"]:
-        await ctx.response.send_message("The story is not ready yet. Play more rounds!")
+        await ctx.response.send_message("The story is not ready yet.")
         return
     
     story = ' '.join([word for part in game_data[channel_id]["sentence"] for word in part["words"]])
@@ -111,16 +125,19 @@ async def clear_story(ctx):
     channel_id = ctx.channel.id
 
     if channel_id not in game_data:
-        await ctx.response.send_message("No game data found for this channel. Use /start to begin a new game.")
+        await ctx.response.send_message("No game data found for this channel. Use `/join` and `/start` to begin a new game.")
         return
 
     if ctx.user.id not in game_data[channel_id]["players"]:
         await ctx.response.send_message(f"{ctx.user.mention} You're not authorized to clear the story.")
         return
 
-    game_data[channel_id]["sentence"] = []
-    game_data[channel_id]["turn_player"] = None
-    game_data[channel_id]["players"] = []
+    game_data[channel_id].clear()
+    #game_data[channel_id]["sentence"] = []
+    #game_data[channel_id]["turn_player"] = None
+    #game_data[channel_id]["players"] = []
+    #game_data[channel_id]["game_started"] = False
+    #game_data[channel_id]["visible_words"] = 5
 
     await ctx.response.send_message("The story has been cleared. Starting fresh!")
 

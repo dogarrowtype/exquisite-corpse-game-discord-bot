@@ -51,10 +51,6 @@ async def start_game(ctx, visible_words: typing.Optional[int] = 5):
         await ctx.response.send_message("No game data found for this channel. Use `/join` to begin creating a new game.")
         return
 
-    if game_data[channel_id]["game_started"]:
-        await ctx.response.send_message("Game is already started.")
-        return
-
     # Check if there are enough players
     if len(game_data[channel_id]["players"]) < 1:
         await ctx.response.send_message("Not enough players! At least 1 player is required. Use `/join` to add more players.")
@@ -72,7 +68,7 @@ async def start_game(ctx, visible_words: typing.Optional[int] = 5):
     
     player_ids_string = ' '.join(f'<@{value}>' for value in game_data[channel_id]["players"])
 
-    await ctx.response.send_message(f"Starting a new game!\nPlayers in this game: {player_ids_string}.\nNumber of words that will be visible to the next player: {game_data[channel_id]['visible_words']}.\n<@{game_data[channel_id]['turn_player']}>'s turn. Use `/play` to continue the sentence.")
+    await ctx.response.send_message(f"Starting a new game!\nPlayers in this game: {player_ids_string}\nNumber of words that will be visible to the next player: {game_data[channel_id]['visible_words']}\n<@{game_data[channel_id]['turn_player']}>'s turn. Use `/play` to continue the sentence.")
 
 @tree.command(name='play', description='Continue the sentence')
 async def play_turn(ctx, sentence: str):
@@ -143,12 +139,12 @@ async def clear_story(ctx):
         await ctx.response.send_message(f"{ctx.user.mention} You're not authorized to clear the story.")
         return
 
-    game_data[channel_id].clear()
-    #game_data[channel_id]["sentence"] = []
-    #game_data[channel_id]["turn_player"] = None
-    #game_data[channel_id]["players"] = []
-    #game_data[channel_id]["game_started"] = False
-    #game_data[channel_id]["visible_words"] = 5
+    #game_data[channel_id].clear()
+    game_data[channel_id]["sentence"] = []
+    game_data[channel_id]["turn_player"] = None
+    game_data[channel_id]["players"] = []
+    game_data[channel_id]["game_started"] = False
+    game_data[channel_id]["visible_words"] = 5
 
     await ctx.response.send_message("The story has been cleared. Starting fresh!")
 

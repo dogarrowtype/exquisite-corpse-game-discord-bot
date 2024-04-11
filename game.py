@@ -45,22 +45,26 @@ async def join_game(ctx):
 async def start_game(ctx, visible_words: typing.Optional[int] = 5):
     global game_data
     channel_id = ctx.channel.id
+    user_id = ctx.user.id
+
+    if channel_id not in game_data:
+        await ctx.response.send_message("No game data found for this channel. Use `/join` to begin creating a new game.")
+        return
 
     if game_data[channel_id]["game_started"]:
         await ctx.response.send_message("Game is already started.")
         return
-    game_data[channel_id] = {"sentence": [], "turn_player": None, "game_started": True, "visible_words": visible_words}
 
     # Check if there are enough players
     if len(game_data[channel_id]["players"]) < 1:
         await ctx.response.send_message("Not enough players! At least 1 player is required. Use `/join` to add more players.")
         return
 
-    game_data[channel_id]["turn_player"] = ctx.user.id
+    game_data[channel_id] = {"sentence": [], "turn_player": user_id, "game_started": True, "visible_words": visible_words}
 
     player_ids_string = ' '.join(f'<@{player_id}>' for player_id in game_data[channel_id]["players"])
 
-    await ctx.response.send_message(f"Starting a new game!\nPlayers in this game: {player_ids_string}\nNumber of words that will be visible to the next player: {game_data[channel_id]['visible_words']}.\n<@{game_data[channel_id]['turn_player']}>'s turn. Use `/play` to continue the sentence.")
+    await ctx.response.send_message(f"Starting a new game!\nPlayers in this game: {player_ids_string}.\nNumber of words that will be visible to the next player: {game_data[channel_id]['visible_words']}.\n<@{game_data[channel_id]['turn_player']}>'s turn. Use `/play` to continue the sentence.")
 
 @tree.command(name='play', description='Continue the sentence')
 async def play_turn(ctx, sentence: str):
@@ -69,7 +73,7 @@ async def play_turn(ctx, sentence: str):
     user_id = ctx.user.id
 
     if channel_id not in game_data:
-        await ctx.response.send_message("No game data found for this channel. Use `/start` to begin a new game.")
+        await ctx.response.send_message("No game data found for this channel. Use `/join` to begin creating a new game.")
         return
     
     if not game_data[channel_id]["game_started"]:
@@ -121,12 +125,13 @@ async def reveal_story(ctx):
 async def clear_story(ctx):
     global game_data
     channel_id = ctx.channel.id
+    user_id = ctx.user.id
 
     if channel_id not in game_data:
         await ctx.response.send_message("No game data found for this channel. Use `/join` and `/start` to begin a new game.")
         return
 
-    if ctx.user.id not in game_data[channel_id]["players"]:
+    if user_id not in game_data[channel_id]["players"]:
         await ctx.response.send_message(f"{ctx.user.mention} You're not authorized to clear the story.")
         return
 

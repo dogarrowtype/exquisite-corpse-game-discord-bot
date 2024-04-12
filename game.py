@@ -128,7 +128,7 @@ async def reveal_story(ctx):
     story = ' '.join([word for part in game_data[channel_id]["sentence"] for word in part["words"]])
     
     # Split the story into chunks that fit within the Discord message character limit
-    chunks = [story[i:i+1980] for i in range(0, len(story), 1980)]
+    chunks = [story[i:i+1940] for i in range(0, len(story), 1940)]
     
     for i, chunk in enumerate(chunks):
         if i == 0:

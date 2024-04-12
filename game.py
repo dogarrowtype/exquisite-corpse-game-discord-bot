@@ -135,7 +135,7 @@ async def reveal_story(ctx):
             await ctx.response.send_message(f"The story so far (Part {i + 1}):\n{chunk}")
         else:
             channel = client.get_channel(channel_id)
-            await channel.send(f"Part {i + 1}:\n{chunk}")
+            await channel.send(f"(Part {i + 1}):\n{chunk}")
 
 @tree.command(name='clear', description='Clear the current story')
 async def clear_story(ctx):

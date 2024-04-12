@@ -127,7 +127,14 @@ async def reveal_story(ctx):
     
     story = ' '.join([word for part in game_data[channel_id]["sentence"] for word in part["words"]])
     
-    await ctx.response.send_message(f"The story so far:\n{story}")
+    # Split the story into chunks that fit within the Discord message character limit
+    chunks = [story[i:i+1980] for i in range(0, len(story), 1980)]
+    
+    for i, chunk in enumerate(chunks):
+        if i == 0:
+            await ctx.response.send_message(f"The story so far (Part {i + 1}):\n{chunk}")
+        else:
+            await ctx.response.send_message(f"Part {i + 1}:\n{chunk}")
 
 @tree.command(name='clear', description='Clear the current story')
 async def clear_story(ctx):
